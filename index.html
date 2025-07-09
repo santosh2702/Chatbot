@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+   <html lang="en">
+   <head>
+     <meta charset="UTF-8">
+     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+     <title>Simple Chatbot</title>
+     <script src="https://cdn.tailwindcss.com"></script>
+   </head>
+   <body class="bg-gray-100 flex items-center justify-center h-screen">
+     <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
+       <h1 class="text-2xl font-bold mb-4 text-center">Chatbot</h1>
+       <div id="chat-container" class="h-80 overflow-y-auto mb-4 p-4 bg-gray-50 rounded">
+         <!-- Chat messages will appear here -->
+       </div>
+       <div class="flex">
+         <input
+           id="user-input"
+           type="text"
+           placeholder="Type your message..."
+           class="flex-1 p-2 border rounded-l-lg focus:outline-none"
+         />
+         <button
+           id="send-btn"
+           class="bg-blue-500 text-white p-2 rounded-r-lg hover:bg-blue-600"
+         >
+           Send
+         </button>
+       </div>
+     </div>
+     <script>
+       const chatContainer = document.getElementById("chat-container");
+       const userInput = document.getElementById("user-input");
+       const sendBtn = document.getElementById("send-btn");
+
+       function addMessage(text, isUser) {
+         const messageDiv = document.createElement("div");
+         messageDiv.className = `mb-2 p-2 rounded-lg ${
+           isUser ? "bg-blue-100 text-right" : "bg-gray-200 text-left"
+         }`;
+         messageDiv.textContent = text;
+         chatContainer.appendChild(messageDiv);
+         chatContainer.scrollTop = chatContainer.scrollHeight;
+       }
+
+       async function sendMessage() {
+         const message = userInput.value.trim();
+         if (!message) return;
+
+         addMessage(message, true);
+         userInput.value = "";
+
+         try {
+           const response = await fetch("http://localhost:3000/api/chat", {
+             method: "POST",
+             headers: { "Content-Type": "application/json" },
+             body: JSON.stringify({ message }),
+           });
+           const data = await response.json();
+           addMessage(data.reply, false);
+         } catch (error) {
+           addMessage("Error: Could not connect to server.", false);
+         }
+       }
+
+       sendBtn.addEventListener("click", sendMessage);
+       userInput.addEventListener("keypress", (e) => {
+         if (e.key === "Enter") sendMessage();
+       });
+     </script>
+   </body>
+   </html>
